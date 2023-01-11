@@ -1,0 +1,36 @@
+host:
+  service:
+    ticket: "ticket-service"
+    flight: "flight-service"
+    bonus: "bonus-service"
+
+path:
+  service:
+    ticket: "tickets"
+    flight: "flights"
+    bonus: "privileges"
+
+port:
+  service:
+    ticket: "8070"
+    flight: "8060"
+    bonus: "8050"
+
+resilience4j:
+  circuit-breaker:
+    instances:
+      gateway-hotels:
+        minimum-number-of-calls: 2
+        wait-duration-in-open-state: 30s
+      gateway-loyalty:
+        minimum-number-of-calls: 2
+        wait-duration-in-open-state: 30s
+      gateway-reservation:
+        minimum-number-of-calls: 2
+        wait-duration-in-open-state: 30s
+      gateway-payment:
+        minimum-number-of-calls: 2
+        wait-duration-in-open-state: 30s
+
+schedule:
+  fixedRate.in.milliseconds: 10_000
