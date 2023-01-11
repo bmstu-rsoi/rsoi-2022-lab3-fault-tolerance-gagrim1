@@ -1,0 +1,10 @@
+spring:
+  flyway:
+    baselineOnMigrate: true
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+  datasource:
+    url: jdbc:postgresql://postgres:5432/privileges
+    username: program
+    password: test

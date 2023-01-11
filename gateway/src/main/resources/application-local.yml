@@ -1,0 +1,17 @@
+host:
+  service:
+    ticket: "ticket-service"
+    flight: "flight-service"
+    bonus: "bonus-service"
+
+path:
+  service:
+    ticket: "tickets"
+    flight: "flights"
+    bonus: "privileges"
+
+port:
+  service:
+    ticket: "8070"
+    flight: "8060"
+    bonus: "8050"
