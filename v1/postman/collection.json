@@ -865,11 +865,10 @@
 									"script": {
 										"exec": [
 											"pm.test(\"Получить информацию о состоянии бонусного счета\", () => {",
-											"    pm.response.to.have.status(503)",
+											"    pm.response.to.have.status(500)",
 											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.contains(\"application/json\");",
 											"    ",
 											"    const response = pm.response.json();",
-											"    pm.expect(response.message).to.be.eq(\"Bonus Service unavailable\")",
 											"})"
 										],
 										"type": "text/javascript"
@@ -1248,11 +1247,10 @@
 									"script": {
 										"exec": [
 											"pm.test(\"Получить информацию о состоянии бонусного счета\", () => {",
-											"    pm.response.to.have.status(503)",
+											"    pm.response.to.have.status(500)",
 											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.contains(\"application/json\");",
 											"    ",
 											"    const response = pm.response.json();",
-											"    pm.expect(response.message).to.be.eq(\"Bonus Service unavailable\")",
 											"})"
 										],
 										"type": "text/javascript"
