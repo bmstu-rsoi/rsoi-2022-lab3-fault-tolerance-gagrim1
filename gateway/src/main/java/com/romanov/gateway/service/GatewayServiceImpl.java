@@ -85,7 +85,7 @@ public class GatewayServiceImpl implements GatewayService {
 
     private ResponseEntity<?> getPrivilegeWithHistoryFallback(String username, Throwable t) {
         log.error(">>> GATEWAY FALLBACK (getPrivilegeWithHistory), username={}: {}", username, t.getMessage());
-        throw new BonusServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new BonusServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @Override
@@ -279,7 +279,7 @@ public class GatewayServiceImpl implements GatewayService {
     private ResponseEntity<?> createTicketFallback(String username, BuyingInput input, Throwable t) {
         log.error(">>> GATEWAY FALLBACK (getArrayOfTickets), username={}, ticketUid={}: {}",
                 username, input, t.getMessage());
-        throw new TicketServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new TicketServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @CircuitBreaker(name = "gateway-flight", fallbackMethod = "getFlightFallback")
@@ -304,7 +304,7 @@ public class GatewayServiceImpl implements GatewayService {
 
     private ResponseEntity<?> getFlightFallback(String flightNumber, Throwable t) {
         log.error(">>> GATEWAY FALLBACK (getFlight), flightNumber={}, {}", flightNumber, t.getMessage());
-        throw new FlightServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new FlightServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @CircuitBreaker(name = "gateway-flight", fallbackMethod = "calculatePriceFallback")
@@ -329,7 +329,7 @@ public class GatewayServiceImpl implements GatewayService {
 
     private ResponseEntity<?> calculatePriceFallback(CalculationPriceInput input, Throwable t) {
         log.error(">>> GATEWAY FALLBACK (getFlight), input={}, {}", input, t.getMessage());
-        throw new BonusServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new BonusServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @Override
@@ -361,7 +361,7 @@ public class GatewayServiceImpl implements GatewayService {
     private ResponseEntity<?> returnBonusesFallback(String username, UUID ticketUid, Throwable t) {
         log.error(">>> GATEWAY FALLBACK (getFlight), username={}, ticketUid={}: {}",
                 username, ticketUid, t.getMessage());
-        throw new BonusServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new BonusServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @CircuitBreaker(name = "gateway-cancel-ticket", fallbackMethod = "cancelTicketFallback")
@@ -387,6 +387,6 @@ public class GatewayServiceImpl implements GatewayService {
     private ResponseEntity<?> cancelTicketFallback(String username, UUID ticketUid, Throwable t) {
         log.error(">>> GATEWAY FALLBACK (getFlight), username={}, ticketUid={}: {}",
                 username, ticketUid, t.getMessage());
-        throw new TicketServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new TicketServiceNotAvailableException(HttpStatus.SERVICE_UNAVAILABLE);
     }
 }
