@@ -1,5 +1,6 @@
 package com.romanov.gateway.service;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import com.romanov.gateway.config.AppParams;
 import com.romanov.gateway.exception.BonusServiceNotAvailableException;
 import com.romanov.gateway.exception.FlightServiceNotAvailableException;
@@ -7,6 +8,7 @@ import com.romanov.gateway.exception.GatewayErrorException;
 import com.romanov.gateway.exception.TicketServiceNotAvailableException;
 import com.romanov.gateway.model.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +25,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GatewayServiceImpl implements GatewayService {
     private static final String USERNAME_PARAM = "X-User-Name";
     private final AppParams params;
@@ -30,6 +33,7 @@ public class GatewayServiceImpl implements GatewayService {
     private WebClient webClient;
 
     @Override
+    @CircuitBreaker(name = "gateway-flight", fallbackMethod = "getFlightsFallback")
     public ResponseEntity<?> getFlights(Integer page, Integer size) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -51,7 +55,15 @@ public class GatewayServiceImpl implements GatewayService {
                 .block();
     }
 
+    private ResponseEntity<?> getFlightsFallback(Integer page, Integer size, Throwable t) {
+        log.error(">>> GATEWAY FALLBACK (getFlight), page={}, size={}: {}", page, size, t.getMessage());
+        return ResponseEntity
+                .internalServerError()
+                .build();
+    }
+
     @Override
+    @CircuitBreaker(name = "gateway-privilege-with-history", fallbackMethod = "getPrivilegeWithHistoryFallback")
     public ResponseEntity<?> getPrivilegeWithHistory(String username) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -69,6 +81,11 @@ public class GatewayServiceImpl implements GatewayService {
                     throw new GatewayErrorException(error.getMessage());
                 })
                 .block();
+    }
+
+    private ResponseEntity<?> getPrivilegeWithHistoryFallback(String username, Throwable t) {
+        log.error(">>> GATEWAY FALLBACK (getPrivilegeWithHistory), username={}: {}", username, t.getMessage());
+        throw new BonusServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
@@ -94,6 +111,7 @@ public class GatewayServiceImpl implements GatewayService {
         return fullTickets;
     }
 
+    @CircuitBreaker(name = "gateway-privilege", fallbackMethod = "getPrivilegeFallback")
     private PrivilegeOutput getPrivilege(String username) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -111,6 +129,11 @@ public class GatewayServiceImpl implements GatewayService {
                     throw new GatewayErrorException(error.getMessage());
                 })
                 .block();
+    }
+
+    private ResponseEntity<?> getPrivilegeFallback(String username, Throwable t) {
+        log.error(">>> GATEWAY FALLBACK (getPrivilege), username={}: {}", username, t.getMessage());
+        throw new BonusServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
@@ -141,6 +164,7 @@ public class GatewayServiceImpl implements GatewayService {
         }
     }
 
+    @CircuitBreaker(name = "gateway-array-of-tickets", fallbackMethod = "getArrayOfTicketsFallback")
     private TicketOutput[] getArrayOfTickets(String username) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -161,6 +185,11 @@ public class GatewayServiceImpl implements GatewayService {
                 .block();
     }
 
+    private ResponseEntity<?> getArrayOfTicketsFallback(String username, Throwable t) {
+        log.error(">>> GATEWAY FALLBACK (getArrayOfTickets), username={}: {}", username, t.getMessage());
+        throw new TicketServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @Override
     public FullTicketOutput getTicketByUid(String username, UUID ticketUid) {
         TicketOutput ticketOutput = getTicket(username, ticketUid);
@@ -174,6 +203,7 @@ public class GatewayServiceImpl implements GatewayService {
                 ticketOutput.getStatus());
     }
 
+    @CircuitBreaker(name = "gateway-ticket", fallbackMethod = "getTicketFallback")
     private TicketOutput getTicket(String username, UUID ticketUid) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -192,6 +222,12 @@ public class GatewayServiceImpl implements GatewayService {
                     throw new GatewayErrorException(error.getMessage());
                 })
                 .block();
+    }
+
+    private ResponseEntity<?> getTicketFallback(String username, UUID ticketUid, Throwable t) {
+        log.error(">>> GATEWAY FALLBACK (getArrayOfTickets), username={}, ticketUid={}: {}",
+                username, ticketUid, t.getMessage());
+        throw new TicketServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
@@ -219,6 +255,7 @@ public class GatewayServiceImpl implements GatewayService {
                 .build();
     }
 
+    @CircuitBreaker(name = "gateway-create-ticket", fallbackMethod = "createTicketFallback")
     private TicketOutput createTicket(String username, BuyingInput input) {
         return webClient.post()
                 .uri(uriBuilder -> uriBuilder
@@ -239,6 +276,13 @@ public class GatewayServiceImpl implements GatewayService {
                 .block();
     }
 
+    private ResponseEntity<?> createTicketFallback(String username, BuyingInput input, Throwable t) {
+        log.error(">>> GATEWAY FALLBACK (getArrayOfTickets), username={}, ticketUid={}: {}",
+                username, input, t.getMessage());
+        throw new TicketServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @CircuitBreaker(name = "gateway-flight", fallbackMethod = "getFlightFallback")
     private FlightOutput getFlight(String flightNumber) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -258,6 +302,12 @@ public class GatewayServiceImpl implements GatewayService {
                 .block();
     }
 
+    private ResponseEntity<?> getFlightFallback(String flightNumber, Throwable t) {
+        log.error(">>> GATEWAY FALLBACK (getFlight), flightNumber={}, {}", flightNumber, t.getMessage());
+        throw new FlightServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @CircuitBreaker(name = "gateway-flight", fallbackMethod = "calculatePriceFallback")
     private BonusOutput calculatePrice(CalculationPriceInput input) {
         return webClient.post()
                 .uri(uriBuilder -> uriBuilder
@@ -277,12 +327,18 @@ public class GatewayServiceImpl implements GatewayService {
                 .block();
     }
 
+    private ResponseEntity<?> calculatePriceFallback(CalculationPriceInput input, Throwable t) {
+        log.error(">>> GATEWAY FALLBACK (getFlight), input={}, {}", input, t.getMessage());
+        throw new BonusServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @Override
     public void returnTicket(String username, UUID ticketUid) {
         cancelTicket(username, ticketUid);
         returnBonuses(username, ticketUid);
     }
 
+    @CircuitBreaker(name = "gateway-return-bonus", fallbackMethod = "returnBonusesFallback")
     private void returnBonuses(String username, UUID ticketUid) {
         webClient.delete()
                 .uri(uriBuilder -> uriBuilder
@@ -302,6 +358,13 @@ public class GatewayServiceImpl implements GatewayService {
                 .block();
     }
 
+    private ResponseEntity<?> returnBonusesFallback(String username, UUID ticketUid, Throwable t) {
+        log.error(">>> GATEWAY FALLBACK (getFlight), username={}, ticketUid={}: {}",
+                username, ticketUid, t.getMessage());
+        throw new BonusServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @CircuitBreaker(name = "gateway-cancel-ticket", fallbackMethod = "cancelTicketFallback")
     private void cancelTicket(String username, UUID ticketUid) {
         webClient.delete()
                 .uri(uriBuilder -> uriBuilder
@@ -319,5 +382,11 @@ public class GatewayServiceImpl implements GatewayService {
                     throw new GatewayErrorException(error.getMessage());
                 })
                 .block();
+    }
+
+    private ResponseEntity<?> cancelTicketFallback(String username, UUID ticketUid, Throwable t) {
+        log.error(">>> GATEWAY FALLBACK (getFlight), username={}, ticketUid={}: {}",
+                username, ticketUid, t.getMessage());
+        throw new TicketServiceNotAvailableException(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

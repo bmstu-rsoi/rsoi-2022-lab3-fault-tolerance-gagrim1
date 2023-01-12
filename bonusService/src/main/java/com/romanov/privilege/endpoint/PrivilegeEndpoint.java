@@ -3,15 +3,23 @@ package com.romanov.privilege.endpoint;
 import com.romanov.privilege.model.dto.*;
 import com.romanov.privilege.service.PrivilegeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/privileges")
+@RequestMapping({"/privileges", ""})
 @RequiredArgsConstructor
 public class PrivilegeEndpoint {
     private final PrivilegeService service;
+
+    @GetMapping(value = "/manage/health", produces = "application/json")
+    public ResponseEntity<?> isAlive() {
+        return ResponseEntity
+                .ok()
+                .build();
+    }
 
     @GetMapping
     public PrivilegeOutput get(@RequestHeader("X-User-Name") String username) {

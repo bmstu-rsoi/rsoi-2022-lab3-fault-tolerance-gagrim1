@@ -15,3 +15,22 @@ port:
     ticket: "8070"
     flight: "8060"
     bonus: "8050"
+
+resilience4j:
+  circuit-breaker:
+    instances:
+      gateway-hotels:
+        minimum-number-of-calls: 2
+        wait-duration-in-open-state: 30s
+      gateway-loyalty:
+        minimum-number-of-calls: 2
+        wait-duration-in-open-state: 30s
+      gateway-reservation:
+        minimum-number-of-calls: 2
+        wait-duration-in-open-state: 30s
+      gateway-payment:
+        minimum-number-of-calls: 2
+        wait-duration-in-open-state: 30s
+
+schedule:
+  fixedRate.in.milliseconds: 10_000

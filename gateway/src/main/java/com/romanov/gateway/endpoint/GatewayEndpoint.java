@@ -12,12 +12,19 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping({"/api/v1", ""})
 @RequiredArgsConstructor
 public class GatewayEndpoint {
     private static final String USERNAME_PARAM = "X-User-Name";
 
     private final GatewayService service;
+
+    @GetMapping(value = "/manage/health", produces = "application/json")
+    public ResponseEntity<?> isAlive() {
+        return ResponseEntity
+                .ok()
+                .build();
+    }
 
     @GetMapping("/flights")
     public ResponseEntity<?> getFlights(@RequestParam("page") Integer page,

@@ -4,16 +4,24 @@ import com.romanov.ticket.model.dto.TicketInput;
 import com.romanov.ticket.model.dto.TicketOutput;
 import com.romanov.ticket.service.TicketService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/tickets")
+@RequestMapping({"/tickets", ""})
 @RequiredArgsConstructor
 public class TicketEndpoint {
     private final TicketService service;
+
+    @GetMapping(value = "/manage/health", produces = "application/json")
+    public ResponseEntity<?> isAlive() {
+        return ResponseEntity
+                .ok()
+                .build();
+    }
 
     @GetMapping
     public List<TicketOutput> getTicketsByUsername(@RequestHeader("X-User-Name") String username) {
